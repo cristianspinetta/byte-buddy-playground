@@ -1,6 +1,5 @@
 package agent;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.implementation.FixedValue;
 
@@ -24,7 +23,10 @@ public class AgentEntryPoint {
                         .intercept(FixedValue.value("transformed")));
 
         if (useIgnored) {
-            agent = agent.ignore(not(nameMatches(ignoredRegex)));
+            agent = agent
+                    .ignore(not(nameMatches(ignoredRegex)))
+                    .or(any(), isBootstrapClassLoader())
+                    .or(any(), isExtensionClassLoader());
         }
 
         agent.installOn(instrumentation);
