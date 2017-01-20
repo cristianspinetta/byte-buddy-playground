@@ -11,9 +11,11 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class AgentEntryPoint {
 
+    private final String ignoredRegex = "cases.to.play.instrumenting.fake.package.*";
+
     public void start(Instrumentation instrumentation) {
         Boolean useIgnored = useIgnored();
-        System.out.println(format ("%s the usage of ignored filter.", useIgnored ? "Enabled" : "Disabled"));
+        System.out.println(format ("%s the usage of ignored filter. Expression: %s", useIgnored ? "Enabled" : "Disabled", ignoredRegex));
 
         AgentBuilder agent = new AgentBuilder.Default()
                 .type(not(isInterface()).and(not(isSynthetic()))
@@ -21,8 +23,9 @@ public class AgentEntryPoint {
                 .transform((builder, typeDescription, classLoader, module) -> builder.method(named("toString"))
                         .intercept(FixedValue.value("transformed")));
 
-        if (useIgnored)
-            agent = agent.ignore(not(nameMatches("cases.to.play.instrumenting.fake.package")));
+        if (useIgnored) {
+            agent = agent.ignore(not(nameMatches(ignoredRegex)));
+        }
 
         agent.installOn(instrumentation);
     }
